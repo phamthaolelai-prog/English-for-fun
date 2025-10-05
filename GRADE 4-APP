@@ -1,0 +1,604 @@
+<!DOCTYPE html>
+<html lang="vi">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>English Fun for Grade 4</title>
+    <script src="https://cdn.jsdelivr.net/npm/chart.js"></script>
+    <style>
+        body {
+            font-family: 'Comic Sans MS', Arial, sans-serif;
+            background: linear-gradient(to bottom, #f0f4ff, #d9e4ff);
+            margin: 0;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 100vh;
+            color: #333;
+        }
+        .container {
+            background: white;
+            padding: 20px;
+            border-radius: 15px;
+            box-shadow: 0 0 15px rgba(0,0,0,0.2);
+            max-width: 600px;
+            width: 90%;
+            text-align: center;
+            border: 5px solid #4caf50;
+        }
+        h1 {
+            color: #4caf50;
+            font-size: 2em;
+            margin-bottom: 10px;
+            animation: bounce 1s infinite;
+        }
+        select, button, input {
+            padding: 10px;
+            margin: 10px;
+            border-radius: 8px;
+            border: none;
+            background: #4caf50;
+            color: white;
+            cursor: pointer;
+            font-size: 1em;
+        }
+        input {
+            background: white;
+            color: black;
+            border: 1px solid #4caf50;
+        }
+        button:hover { background: #45a049; }
+        .word-card, .sentence-card {
+            background: #fff9c4;
+            padding: 15px;
+            border-radius: 10px;
+            margin: 10px 0;
+            font-size: 1.2em;
+        }
+        .word-card p, .sentence-card p { margin: 5px; }
+        .icon {
+            font-size: 2em;
+            cursor: pointer;
+            margin: 10px;
+        }
+        .select-area {
+            margin: 10px 0;
+        }
+        .select-area select {
+            background: #e0f7fa;
+            color: #333;
+            border: none;
+        }
+        .progress-table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+        .progress-table th, .progress-table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+        }
+        .progress-table th { background: #4caf50; color: white; }
+        #progressChart { max-width: 100%; height: 200px; }
+        #userInfo { font-weight: bold; margin-bottom: 10px; }
+        .error-message { color: red; font-size: 0.9em; }
+        @media (max-width: 600px) {
+            h1 { font-size: 1.5em; }
+            .container { padding: 10px; }
+            select, button, input { font-size: 0.9em; }
+        }
+        @keyframes bounce {
+            0%, 100% { transform: translateY(0); }
+            50% { transform: translateY(-10px); }
+        }
+        .confetti {
+            position: fixed;
+            width: 10px;
+            height: 10px;
+            background: #ffeb3b;
+            animation: fall 2s linear;
+        }
+        @keyframes fall {
+            to { transform: translateY(100vh) rotate(360deg); }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>English Fun for Grade 4 📚</h1>
+        <div id="auth">
+            <input id="username" type="text" placeholder="Tên học sinh">
+            <input id="classroom" type="text" placeholder="Lớp học (ví dụ: 4A)">
+            <button onclick="login()">Đăng nhập</button>
+        </div>
+        <div id="main" style="display: none;">
+            <div id="userInfo"></div>
+            <select id="unitSelect">
+                <option value="1">Unit 1: My Friends</option>
+                <option value="2">Unit 2: Time and Daily Routines</option>
+                <option value="3">Unit 3: My Week</option>
+                <option value="4">Unit 4: My Birthday Party</option>
+                <option value="5">Unit 5: Things We Can Do</option>
+            </select>
+            <select id="accentSelect">
+                <option value="en-GB">Anh-Anh</option>
+                <option value="en-US">Anh-Mỹ</option>
+            </select>
+            <button onclick="startVocab()">Luyện Từ Vựng</button>
+            <button onclick="startSentence()">Luyện Mẫu Câu</button>
+            <button onclick="showProgress()">Xem Tiến Độ</button>
+            <div id="vocabSection" style="display: none;">
+                <div class="word-card">
+                    <p id="word"></p>
+                    <p id="phonetic"></p>
+                    <p id="meaning"></p>
+                    <span class="icon" onclick="playWord()">🔊</span>
+                    <span class="icon" onclick="recordWord()">🎤</span>
+                    <p id="wordScore"></p>
+                    <p id="wordError" class="error-message"></p>
+                    <button onclick="nextWord()">Next</button>
+                </div>
+            </div>
+            <div id="sentenceSection" style="display: none;">
+                <div class="sentence-card">
+                    <p id="sentencePrompt"></p>
+                    <div class="select-area">
+                        <select id="subjectSelect"></select>
+                        <select id="otherSelect"></select>
+                        <button onclick="formSentence()">Ghép Câu</button>
+                    </div>
+                    <p id="formedSentence"></p>
+                    <span class="icon" onclick="playSentence()">🔊</span>
+                    <span class="icon" onclick="recordSentence()">🎤</span>
+                    <p id="sentenceScore"></p>
+                    <p id="sentenceError" class="error-message"></p>
+                    <button onclick="nextSentence()">Next</button>
+                </div>
+            </div>
+            <div id="progressSection" style="display: none;">
+                <h2>Tiến Độ Học Tập 😊</h2>
+                <table class="progress-table">
+                    <thead><tr><th>Ngày</th><th>Unit</th><th>Điểm</th><th>Học Sinh</th><th>Lớp</th><th>Lần Đăng Nhập</th></tr></thead>
+                    <tbody id="progressTable"></tbody>
+                </table>
+                <canvas id="progressChart"></canvas>
+            </div>
+        </div>
+    </div>
+    <script>
+        const units = {
+            1: {
+                vocab: [
+                    { word: "friend", phonetic: "/frend/", meaning: "bạn bè" },
+                    { word: "city", phonetic: "/ˈsɪt.i/", meaning: "thành phố" },
+                    { word: "country", phonetic: "/ˈkʌn.tri/", meaning: "quốc gia" },
+                    { word: "from", phonetic: "/frɒm/", meaning: "từ" },
+                    { word: "America", phonetic: "/əˈmer.ɪ.kə/", meaning: "Mỹ" },
+                    { word: "England", phonetic: "/ˈɪŋ.ɡlənd/", meaning: "Anh" },
+                    { word: "Viet Nam", phonetic: "/ˌvjetˈnæm/", meaning: "Việt Nam" },
+                    { word: "Japan", phonetic: "/dʒəˈpæn/", meaning: "Nhật" }
+                ],
+                sentences: [
+                    { prompt: "Where are you from?", subjects: ["I", "We", "You", "They", "He", "She"], others: ["Viet Nam", "Singapore", "Japan", "England"], getAnswer: (sub, oth) => {
+                        if (sub === "He" || sub === "She") return `${sub}'s from ${oth}.`;
+                        return `${sub}'m from ${oth}.`;
+                    } }
+                ]
+            },
+            2: {
+                vocab: [
+                    { word: "wake up", phonetic: "/weɪk ʌp/", meaning: "thức dậy" },
+                    { word: "breakfast", phonetic: "/ˈbrek.fəst/", meaning: "bữa sáng" },
+                    { word: "school", phonetic: "/skuːl/", meaning: "trường học" },
+                    { word: "lunch", phonetic: "/lʌntʃ/", meaning: "bữa trưa" },
+                    { word: "dinner", phonetic: "/ˈdɪn.ər/", meaning: "bữa tối" },
+                    { word: "bedtime", phonetic: "/ˈbed.taɪm/", meaning: "giờ đi ngủ" },
+                    { word: "at", phonetic: "/æt/", meaning: "vào lúc" },
+                    { word: "o’clock", phonetic: "/əˈklɒk/", meaning: "giờ" }
+                ],
+                sentences: [
+                    { prompt: "What time do you wake up?", subjects: ["I", "We", "You", "They", "He", "She"], others: ["seven o’clock", "eight o’clock", "nine o’clock"], getAnswer: (sub, oth) => {
+                        if (sub === "He" || sub === "She") return `${sub} wakes up at ${oth}.`;
+                        return `${sub} wake up at ${oth}.`;
+                    } },
+                    { prompt: "What time do you have lunch?", subjects: ["I", "We", "You", "They", "He", "She"], others: ["twelve o’clock", "one o’clock", "two o’clock"], getAnswer: (sub, oth) => {
+                        if (sub === "He" || sub === "She") return `${sub} has lunch at ${oth}.`;
+                        return `${sub} have lunch at ${oth}.`;
+                    } },
+                    { prompt: "What time do you wash your face?", subjects: ["I", "We", "You", "They", "He", "She"], others: ["seven o’clock", "eight o’clock", "nine o’clock"], getAnswer: (sub, oth) => {
+                        if (sub === "He") return `${sub} washes his face at ${oth}.`;
+                        if (sub === "She") return `${sub} washes her face at ${oth}.`;
+                        return `${sub} wash face at ${oth}.`;
+                    } },
+                    { prompt: "What time do you go to bed?", subjects: ["I", "We", "You", "They", "He", "She"], others: ["nine o’clock", "ten o’clock"], getAnswer: (sub, oth) => {
+                        if (sub === "He" || sub === "She") return `${sub} goes to bed at ${oth}.`;
+                        return `${sub} go to bed at ${oth}.`;
+                    } }
+                ]
+            },
+            3: {
+                vocab: [
+                    { word: "Monday", phonetic: "/ˈmʌn.deɪ/", meaning: "Thứ Hai" },
+                    { word: "Tuesday", phonetic: "/ˈtʃuːz.deɪ/", meaning: "Thứ Ba" },
+                    { word: "Wednesday", phonetic: "/ˈwenz.deɪ/", meaning: "Thứ Tư" },
+                    { word: "Thursday", phonetic: "/ˈθɜːz.deɪ/", meaning: "Thứ Năm" },
+                    { word: "Friday", phonetic: "/ˈfraɪ.deɪ/", meaning: "Thứ Sáu" },
+                    { word: "Saturday", phonetic: "/ˈsæt.ə.deɪ/", meaning: "Thứ Bảy" },
+                    { word: "Sunday", phonetic: "/ˈsʌn.deɪ/", meaning: "Chủ Nhật" },
+                    { word: "study", phonetic: "/ˈstʌd.i/", meaning: "học" },
+                    { word: "play", phonetic: "/pleɪ/", meaning: "chơi" }
+                ],
+                sentences: [
+                    { prompt: "What day is it today?", subjects: ["It"], others: ["Monday", "Tuesday", "Wednesday"], getAnswer: (sub, oth) => `${sub}’s ${oth}.` },
+                    { prompt: "What do you do on Friday?", subjects: ["I", "We", "You", "They", "He", "She"], others: ["study at school", "play games", "visit friends"], getAnswer: (sub, oth) => {
+                        if (sub === "He" || sub === "She") return `${sub} ${oth.replace('study', 'studies').replace('play', 'plays').replace('visit', 'visits')} on Friday.`;
+                        return `${sub} ${oth} on Friday.`;
+                    } }
+                ]
+            },
+            4: {
+                vocab: [
+                    { word: "birthday", phonetic: "/ˈbɜːθ.deɪ/", meaning: "sinh nhật" },
+                    { word: "cake", phonetic: "/keɪk/", meaning: "bánh" },
+                    { word: "juice", phonetic: "/dʒuːs/", meaning: "nước ép" },
+                    { word: "pizza", phonetic: "/ˈpiːt.sə/", meaning: "bánh pizza" },
+                    { word: "ice cream", phonetic: "/aɪs kriːm/", meaning: "kem" },
+                    { word: "drink", phonetic: "/drɪŋk/", meaning: "uống" },
+                    { word: "eat", phonetic: "/iːt/", meaning: "ăn" },
+                    { word: "want", phonetic: "/wɒnt/", meaning: "muốn" }
+                ],
+                sentences: [
+                    { prompt: "What do you want to eat?", subjects: ["I", "We", "You", "They", "He", "She"], others: ["pizza", "cake", "ice cream", "hamburger", "sandwich", "apple"], getAnswer: (sub, oth) => {
+                        if (sub === "He" || sub === "She") return `${sub} wants some ${oth}.`;
+                        return `${sub} want some ${oth}.`;
+                    } },
+                    { prompt: "What do you want to drink?", subjects: ["I", "We", "You", "They", "He", "She"], others: ["juice", "water", "milk", "soda", "tea", "lemonade"], getAnswer: (sub, oth) => {
+                        if (sub === "He" || sub === "She") return `${sub} wants some ${oth}.`;
+                        return `${sub} want some ${oth}.`;
+                    } }
+                ]
+            },
+            5: {
+                vocab: [
+                    { word: "ride", phonetic: "/raɪd/", meaning: "đi xe" },
+                    { word: "bike", phonetic: "/baɪk/", meaning: "xe đạp" },
+                    { word: "swim", phonetic: "/swɪm/", meaning: "bơi" },
+                    { word: "sing", phonetic: "/sɪŋ/", meaning: "hát" },
+                    { word: "dance", phonetic: "/dɑːns/", meaning: "nhảy" },
+                    { word: "play", phonetic: "/pleɪ/", meaning: "chơi" },
+                    { word: "can", phonetic: "/kæn/", meaning: "có thể" },
+                    { word: "can’t", phonetic: "/kɑːnt/", meaning: "không thể" }
+                ],
+                sentences: [
+                    { prompt: "Can you ride a bike?", subjects: ["I", "We", "You", "They", "He", "She"], others: ["Yes", "No"], getAnswer: (sub, oth) => {
+                        if (oth === "Yes") {
+                            if (sub === "He" || sub === "She") return `Yes, ${sub} can.`;
+                            return `Yes, ${sub} can.`;
+                        } else {
+                            if (sub === "He" || sub === "She") return `No, ${sub} can't.`;
+                            return `No, ${sub} can't.`;
+                        }
+                    } },
+                    { prompt: "Can he swim?", subjects: ["He", "She", "It"], others: ["swim", "sing", "dance"], getAnswer: (sub, oth) => `No, ${sub} can’t, but ${sub} can ${oth}.` }
+                ]
+            }
+        };
+
+        let currentUser = null;
+        let currentClass = null;
+        let loginCount = 0;
+        let currentUnit = 1;
+        let currentWordIndex = 0;
+        let currentSentenceIndex = 0;
+        let recognition = null;
+        let currentMode = null;
+        let currentAnswer = '';
+
+        function login() {
+            const username = document.getElementById('username').value;
+            const classroom = document.getElementById('classroom').value;
+            if (username && classroom) {
+                currentUser = username;
+                currentClass = classroom;
+                loginCount = parseInt(localStorage.getItem(currentUser + '_loginCount') || '0') + 1;
+                localStorage.setItem(currentUser + '_user', username);
+                localStorage.setItem(currentUser + '_class', classroom);
+                localStorage.setItem(currentUser + '_loginCount', loginCount);
+                document.getElementById('auth').style.display = 'none';
+                document.getElementById('main').style.display = 'block';
+                document.getElementById('userInfo').textContent = `Học sinh: ${username} - Lớp: ${classroom} - Lần đăng nhập: ${loginCount}`;
+                loadProgress();
+            } else {
+                alert('Vui lòng nhập đầy đủ tên và lớp!');
+            }
+        }
+
+        function startVocab() {
+            currentMode = 'vocab';
+            currentWordIndex = 0;
+            document.getElementById('vocabSection').style.display = 'block';
+            document.getElementById('sentenceSection').style.display = 'none';
+            document.getElementById('progressSection').style.display = 'none';
+            showWord();
+        }
+
+        function startSentence() {
+            currentMode = 'sentence';
+            currentSentenceIndex = 0;
+            document.getElementById('vocabSection').style.display = 'none';
+            document.getElementById('sentenceSection').style.display = 'block';
+            document.getElementById('progressSection').style.display = 'none';
+            showSentence();
+        }
+
+        function showProgress() {
+            document.getElementById('vocabSection').style.display = 'none';
+            document.getElementById('sentenceSection').style.display = 'none';
+            document.getElementById('progressSection').style.display = 'block';
+            renderProgress();
+        }
+
+        function showWord() {
+            const unit = units[currentUnit];
+            const word = unit.vocab[currentWordIndex];
+            document.getElementById('word').textContent = word.word;
+            document.getElementById('phonetic').textContent = word.phonetic;
+            document.getElementById('meaning').textContent = `Nghĩa: ${word.meaning}`;
+            document.getElementById('wordScore').textContent = 'Score: 0/10';
+            document.getElementById('wordError').textContent = '';
+        }
+
+        function showSentence() {
+            const unit = units[currentUnit];
+            const sentence = unit.sentences[currentSentenceIndex];
+            document.getElementById('sentencePrompt').textContent = sentence.prompt;
+            document.getElementById('formedSentence').textContent = '';
+            document.getElementById('sentenceScore').textContent = 'Score: 0/10';
+            document.getElementById('sentenceError').textContent = '';
+            currentAnswer = '';
+            const subSelect = document.getElementById('subjectSelect');
+            subSelect.innerHTML = '';
+            sentence.subjects.forEach(sub => {
+                const opt = document.createElement('option');
+                opt.value = sub;
+                opt.textContent = sub;
+                subSelect.appendChild(opt);
+            });
+            const othSelect = document.getElementById('otherSelect');
+            othSelect.innerHTML = '';
+            sentence.others.forEach(oth => {
+                const opt = document.createElement('option');
+                opt.value = oth;
+                opt.textContent = oth;
+                othSelect.appendChild(opt);
+            });
+        }
+
+        function formSentence() {
+            const unit = units[currentUnit];
+            const sentence = unit.sentences[currentSentenceIndex];
+            const sub = document.getElementById('subjectSelect').value;
+            const oth = document.getElementById('otherSelect').value;
+            const formed = sentence.getAnswer(sub, oth);
+            document.getElementById('formedSentence').textContent = formed;
+            document.getElementById('formedSentence').style.color = 'green';
+            currentAnswer = formed;
+        }
+
+        function playWord() {
+            const word = units[currentUnit].vocab[currentWordIndex].word;
+            speak(word);
+        }
+
+        function playSentence() {
+            if (currentAnswer) {
+                speak(currentAnswer);
+            } else {
+                alert('Vui lòng ghép câu trước!');
+            }
+        }
+
+        function speak(text) {
+            const utterance = new SpeechSynthesisUtterance(text);
+            utterance.lang = document.getElementById('accentSelect').value;
+            utterance.onerror = (event) => {
+                alert('Lỗi phát âm thanh: ' + event.error);
+            };
+            speechSynthesis.speak(utterance);
+        }
+
+        function recordWord() {
+            const word = units[currentUnit].vocab[currentWordIndex].word;
+            startRecognition(word, 'wordScore', 'wordError');
+        }
+
+        function recordSentence() {
+            if (currentAnswer) {
+                startRecognition(currentAnswer, 'sentenceScore', 'sentenceError');
+            } else {
+                alert('Vui lòng ghép câu trước!');
+            }
+        }
+
+        function startRecognition(target, scoreElement, errorElement) {
+            if (!('SpeechRecognition' in window || 'webkitSpeechRecognition' in window)) {
+                document.getElementById(errorElement).textContent = 'Trình duyệt không hỗ trợ thu âm. Vui lòng dùng Chrome hoặc Edge.';
+                return;
+            }
+            navigator.mediaDevices.getUserMedia({ audio: true })
+                .then(() => {
+                    if (!recognition) {
+                        recognition = new (window.SpeechRecognition || window.webkitSpeechRecognition)();
+                        recognition.lang = document.getElementById('accentSelect').value;
+                        recognition.interimResults = false;
+                        recognition.maxAlternatives = 1;
+                    }
+                    recognition.onresult = (event) => {
+                        const spoken = event.results[0][0].transcript;
+                        const score = calculateScore(spoken, target);
+                        document.getElementById(scoreElement).textContent = `Score: ${score}/10 - ${getScoreFeedback(score)}`;
+                        document.getElementById(errorElement).textContent = '';
+                        playFeedback(score);
+                        saveProgress(score);
+                    };
+                    recognition.onerror = (event) => {
+                        document.getElementById(errorElement).textContent = `Lỗi thu âm: ${event.error}. Vui lòng kiểm tra micro và thử lại.`;
+                    };
+                    recognition.onend = () => {
+                        recognition.stop();
+                    };
+                    recognition.start();
+                })
+                .catch((err) => {
+                    document.getElementById(errorElement).textContent = `Không thể truy cập micro: ${err.message}. Vui lòng cấp quyền micro trong trình duyệt.`;
+                });
+        }
+
+        function levenshteinDistance(s1, s2) {
+            if (s1.length < s2.length) {
+                return levenshteinDistance(s2, s1);
+            }
+            if (s2.length === 0) {
+                return s1.length;
+            }
+            let previousRow = Array.from({length: s2.length + 1}, (_, i) => i);
+            for (let i = 0; i < s1.length; i++) {
+                const currentRow = [i + 1];
+                for (let j = 0; j < s2.length; j++) {
+                    const insertions = previousRow[j + 1] + 1;
+                    const deletions = currentRow[j] + 1;
+                    const substitutions = previousRow[j] + (s1[i] !== s2[j] ? 1 : 0);
+                    currentRow.push(Math.min(insertions, deletions, substitutions));
+                }
+                previousRow = currentRow;
+            }
+            return previousRow[previousRow.length - 1];
+        }
+
+        function calculateScore(spoken, target) {
+            spoken = spoken.toLowerCase().replace(/[.,!?]/g, '').trim();
+            target = target.toLowerCase().replace(/[.,!?]/g, '').trim();
+            const distance = levenshteinDistance(spoken, target);
+            const maxLen = Math.max(spoken.length, target.length);
+            const similarity = maxLen > 0 ? 1 - (distance / maxLen) : 1;
+            return Math.round(similarity * 10);
+        }
+
+        function getScoreFeedback(score) {
+            if (score >= 9) return 'Excellent — rất gần mẫu chuẩn';
+            if (score >= 7) return 'Good — vài lỗi nhỏ';
+            if (score >= 4) return 'Needs practice — thiếu nhiều từ hoặc âm cuối';
+            return 'Try again — khác biệt lớn';
+        }
+
+        function playFeedback(score) {
+            if (score >= 9) {
+                new Audio('https://www.soundjay.com/buttons/clap.wav').play();
+                speak('Excellent!');
+                showConfetti();
+            } else if (score < 7) {
+                new Audio('https://www.soundjay.com/buttons/beep.wav').play();
+            }
+            if (score < 9) speak('You can do it better!');
+        }
+
+        function showConfetti() {
+            for (let i = 0; i < 50; i++) {
+                const confetti = document.createElement('div');
+                confetti.className = 'confetti';
+                confetti.style.left = Math.random() * 100 + 'vw';
+                confetti.style.background = ['#ffeb3b', '#f44336', '#4caf50'][Math.floor(Math.random() * 3)];
+                document.body.appendChild(confetti);
+                setTimeout(() => confetti.remove(), 2000);
+            }
+        }
+
+        function nextWord() {
+            currentWordIndex++;
+            if (currentWordIndex >= units[currentUnit].vocab.length) {
+                currentWordIndex = 0;
+                alert('Hoàn thành unit! Điểm tổng: ' + calculateUnitScore());
+            }
+            showWord();
+        }
+
+        function nextSentence() {
+            currentSentenceIndex++;
+            if (currentSentenceIndex >= units[currentUnit].sentences.length) {
+                currentSentenceIndex = 0;
+                alert('Hoàn thành unit! Điểm tổng: ' + calculateUnitScore());
+            }
+            showSentence();
+        }
+
+        function calculateUnitScore() {
+            const scores = JSON.parse(localStorage.getItem(currentUser + '_progress') || '[]');
+            const unitScores = scores.filter(s => s.unit === currentUnit);
+            const avg = unitScores.reduce((sum, s) => sum + s.score, 0) / (unitScores.length || 1);
+            return Math.round(avg * 10) / 10;
+        }
+
+        function saveProgress(score) {
+            const progress = JSON.parse(localStorage.getItem(currentUser + '_progress') || '[]');
+            progress.push({
+                date: new Date().toLocaleDateString(),
+                unit: currentUnit,
+                score: score,
+                studentName: currentUser,
+                classroom: currentClass,
+                loginCount: loginCount
+            });
+            localStorage.setItem(currentUser + '_progress', JSON.stringify(progress));
+        }
+
+        function loadProgress() {
+            if (localStorage.getItem(currentUser + '_progress')) {
+                renderProgress();
+            }
+            if (localStorage.getItem(currentUser + '_user')) {
+                document.getElementById('userInfo').textContent = `Học sinh: ${localStorage.getItem(currentUser + '_user')} - Lớp: ${localStorage.getItem(currentUser + '_class')} - Lần đăng nhập: ${localStorage.getItem(currentUser + '_loginCount')}`;
+            }
+        }
+
+        function renderProgress() {
+            const progress = JSON.parse(localStorage.getItem(currentUser + '_progress') || '[]');
+            const table = document.getElementById('progressTable');
+            table.innerHTML = '';
+            progress.forEach(p => {
+                const row = document.createElement('tr');
+                row.innerHTML = `<td>${p.date}</td><td>Unit ${p.unit}</td><td>${p.score}/10</td><td>${p.studentName}</td><td>${p.classroom}</td><td>${p.loginCount}</td>`;
+                table.appendChild(row);
+            });
+            const ctx = document.getElementById('progressChart').getContext('2d');
+            new Chart(ctx, {
+                type: 'line',
+                data: {
+                    labels: progress.map(p => p.date),
+                    datasets: [{
+                        label: 'Điểm số',
+                        data: progress.map(p => p.score),
+                        borderColor: '#4caf50',
+                        fill: false
+                    }]
+                },
+                options: { scales: { y: { min: 0, max: 10 } } }
+            });
+        }
+
+        document.getElementById('unitSelect').onchange = () => {
+            currentUnit = parseInt(document.getElementById('unitSelect').value);
+            currentWordIndex = 0;
+            currentSentenceIndex = 0;
+            if (currentMode === 'vocab') showWord();
+            else if (currentMode === 'sentence') showSentence();
+        };
+
+        // Kiểm tra quyền micro khi tải trang
+        navigator.permissions.query({ name: 'microphone' }).then((result) => {
+            if (result.state !== 'granted') {
+                alert('Vui lòng cấp quyền sử dụng micro trong trình duyệt để thu âm!');
+            }
+        });
+    </script>
+</body>
+</html>
